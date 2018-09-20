@@ -1,5 +1,5 @@
 *.pyc
 build/
 dist/
-pylut.egg-info
+pyttimes.egg-info
 iaspei-tau-lookuptable/

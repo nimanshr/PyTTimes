@@ -14,12 +14,12 @@ from tempfile import NamedTemporaryFile
 
 import numpy as np
 
-from pylut.grid import *
-from pylut.table import *
-from pylut import util
+from pyttimes.grid import *
+from pyttimes.table import *
+from pyttimes import util
 
 
-progname = 'pylut'
+progname = 'pyttimes'
 
 g_model_filename = '_uvw_.tvel'
 g_model_name = '_uvw_'

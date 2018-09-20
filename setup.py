@@ -7,7 +7,7 @@ from setuptools import setup
 from setuptools.command.build_py import build_py
 
 
-packname = 'pylut'
+packname = 'pyttimes'
 
 
 def make_prerequisites():
