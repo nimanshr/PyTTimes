@@ -5,7 +5,7 @@ import os
 import os.path as op
 
 
-class PylutError(Exception):
+class PyTTimesError(Exception):
     pass
 
 
@@ -32,8 +32,9 @@ def ensuredirs(dst):
     dst : str
         Target path
 
-    The leaf part of the target path is not created (use :py:func:`ensuredir`
-    if a the target path is a directory to be created).
+    Note
+    ----
+    The leaf part of the target path is not created.
     """
 
     d, x = os.path.split(dst)
