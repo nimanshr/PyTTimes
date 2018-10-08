@@ -12,7 +12,7 @@ g_fstem_templates = {
     'time': '%(basename)s.%(wave_type)s.%(slabel)s.%(grid_type)s',
     'vel': '%(basename)s.%(wave_type)s.mod'}
 
-g_float_types = {'FLOAT': 'f', 'DOUBLE': 'd'}
+g_float_types = {'FLOAT': 'f4', 'DOUBLE': 'f8'}
 
 sys_is_le = sys.byteorder == 'little'
 
