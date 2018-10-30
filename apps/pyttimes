@@ -46,7 +46,7 @@ subcmd_usages = {
     'list-models': 'list-models [options]',
     'ttt': 'ttt --phase=<phase> --distances=<dist_min:dist_max:delta_dist> '
            '--depths=<depth_min:depth_max:delta_depth> '
-           '--model=<model_name|model_file> [--stem=<stem>]'}
+           '--model=<model_name|model_file> [--stem=<stem>] [--grid]'}
 
 
 usage_tdata = d2u(subcmd_descriptions)
@@ -187,7 +187,11 @@ def command_ttt(args):
 
             shutil.rmtree(ttimes_dir)
 
-            fn_tbl = '{}.{}.tab'.format(args.stem or model_name, args.phase)
+            head, tail = op.split(args.stem or model_name)
+            head = head or op.curdir
+            stem = op.join(head, tail)
+
+            fn_tbl = '{}.{}.tab'.format(stem, args.phase)
             util.ensuredirs(fn_tbl)
             if op.exists(fn_tbl):
                 os.remove(fn_tbl)
@@ -202,7 +206,7 @@ def command_ttt(args):
                     out_lut.splitlines(), nd=nd, nz=nz, getmeta=False)
 
                 nll_grid = NLLGrid(
-                    basename=args.stem or model_name,
+                    basename=stem,
                     float_type='FLOAT',
                     grid_type='TIME2D',
                     wave_type=phase,

@@ -15,7 +15,7 @@ class LookupTable(Object):
     shape = TableShape.T()
     dist_array = Array.T(shape=(None,), dtype=np.float32, optional=True)
     depth_array = Array.T(shape=(None,), dtype=np.float32, optional=True)
-    data_array = Array.T(shape=(None, None), dtype=np.float)
+    data_array = Array.T(shape=(None, None), dtype=np.float32)
 
 
 def read_lookup_table(path_or_linelist, nd=None, nz=None, getmeta=True):
@@ -58,7 +58,9 @@ def read_lookup_table(path_or_linelist, nd=None, nz=None, getmeta=True):
         start = nline_top + iz*(nd+1)
         end = start + nd
         # first line of each block is a comment
-        data_array[:, iz] = lines[start+1:end+1]
+        # now it supports LOCSAT style ascii table (line style: 'time phase')
+        data_array[:, iz] = [
+            x[0] for x in map(str.split, lines[start+1:end+1])]
 
     return LookupTable(
         shape=TableShape(nd=nd, nz=nz),
