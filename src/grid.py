@@ -34,7 +34,7 @@ def swapped_byte_order():
 
 
 class Station(Object):
-    name = String.T(default='')
+    name = String.T(default='DEFAULT')
     lat = Float.T(default=0.0)
     lon = Float.T(default=0.0)
     depth = Float.T(default=0.0, help='Unit: [m]')
@@ -106,7 +106,7 @@ class NLLGrid(Object):
 
     def __init__(self, data_array=None, **kwargs):
         Object.__init__(self, **kwargs)
-        self.station = kwargs.get('station') or Station(name='DEFAULT')
+        self.station = kwargs.get('station') or Station()
         self.data_array = data_array
         self._nodes_x = None
         self._nodes_y = None
