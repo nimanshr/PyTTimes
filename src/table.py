@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from pyrocko.guts import Object, Int
+from pyrocko.guts import Object, Int, String
 from pyrocko.guts_array import Array
 
 
@@ -12,13 +12,17 @@ class TableShape(Object):
 
 
 class LookupTable(Object):
+    basename = String.T(optional=True)
+    wave_type = String.T()
     shape = TableShape.T()
     dist_array = Array.T(shape=(None,), dtype=np.float32, optional=True)
     depth_array = Array.T(shape=(None,), dtype=np.float32, optional=True)
     data_array = Array.T(shape=(None, None), dtype=np.float32)
 
 
-def read_lookup_table(path_or_linelist, nd=None, nz=None, getmeta=True):
+def read_lookup_table(
+        path_or_linelist, wave_type, nd=None, nz=None, getmeta=True):
+
     if isinstance(path_or_linelist, str):
         with open(path_or_linelist, 'r') as fid:
             lines = fid.read().splitlines()
@@ -63,6 +67,7 @@ def read_lookup_table(path_or_linelist, nd=None, nz=None, getmeta=True):
             x[0] for x in map(str.split, lines[start+1:end+1])]
 
     return LookupTable(
+        wave_type=wave_type,
         shape=TableShape(nd=nd, nz=nz),
         dist_array=dist_array,
         depth_array=depth_array,

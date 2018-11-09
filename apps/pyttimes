@@ -2,20 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import glob
 import logging
-import os
-import os.path as op
-import platform
-import shutil
 import sys
-from subprocess import Popen, PIPE
-from tempfile import NamedTemporaryFile
 
 import numpy as np
 
-from pyttimes.grid import *
-from pyttimes.table import *
+from pyttimes.tau import TauConfig, TauRunner
 from pyttimes import util
 
 
@@ -102,12 +94,6 @@ def create_subcmd_parser(subcmd, common_opts=True):
 
 def command_ttt(args):
 
-    # Check the velocity model
-    model_name = args.model.rstrip('.tvel')
-    if not op.exists(args.model) and model_name not in util.builtin_models():
-        raise top_parser.error(
-            'unsupported model format: {}'.format(args.model))
-
     # Get surface distances
     d_min, d_max, dd = map(float, args.distances.split(':'))
     ds = np.arange(d_min, d_max+dd, dd)
@@ -116,108 +102,16 @@ def command_ttt(args):
     z_min, z_max, dz = map(float, args.depths.split(':'))
     zs = np.arange(z_min, z_max+dz, dz)
 
-    nd, nz = ds.size, zs.size
-    if nz > 200:
-        top_parser.error('number of depth samples cannot be greater than 200')
+    tau_config = TauConfig(
+        model=args.model,
+        phase_list=[x.strip() for x in args.phase.split(',')],
+        file_stem=args.stem,
+        dist_array=ds,
+        depth_array=zs,
+        save_grid=args.grid)
 
-    # Remove redundant files
-    exts = ('.hed', '.tbl')
-    for ext in exts:
-        fn = 'remodl' + ext
-        if op.exists(fn):
-            os.remove(fn)
-
-    # Make and export required directories
-    ttimes_dir = platform.system()
-    if not op.isdir(ttimes_dir):
-        os.mkdir(ttimes_dir)
-
-    os.environ['TTIMES'] = ttimes_dir
-
-    # Call binaries
-    with NamedTemporaryFile(mode='w+t', suffix='.dist', delete=True) as dfile,\
-            NamedTemporaryFile(
-                mode='w+t', suffix='.depth', delete=True) as zfile:
-
-        # Dump distance and depth values into ascii files
-        np.savetxt(dfile, ds, fmt='%.2f')
-        np.savetxt(zfile, zs, fmt='%.2f')
-
-        # Return the pointer to the top of the file before reading it,
-        # otherwise, just an empty string will be read.
-        for f in (dfile, zfile):
-            f.seek(0)
-
-        model_fn = (
-            op.exists(args.model) and args.model or
-            util.builtin_model_filename(model_name))
-
-        with open(model_fn, 'r') as f, open(g_model_filename, 'w') as g:
-            g.write(f.read())
-
-        proc_remodl = Popen(['remodl', g_model_name], stdout=PIPE, stderr=PIPE)
-        out_remodl, _ = proc_remodl.communicate()
-        os.remove(g_model_filename)
-
-        proc_setbrn = Popen(['setbrn'], stdout=PIPE, stderr=PIPE)
-        out_setbrn, _ = proc_setbrn.communicate()
-
-        # Remove redundant files
-        for ext in exts:
-            os.remove('remodl'+ext)
-
-        for fn in glob.glob('setbrn*lis'):
-            os.remove(fn)
-
-        # Move ".hed" and ".tbl" files
-        for ext in exts:
-            src_tail = g_model_name + ext
-            dst_full = op.join(ttimes_dir, src_tail)
-            shutil.move(src_tail, dst_full)
-
-        # Make the travel-time lookup table
-        phases = [x.strip() for x in args.phase.split(',')]
-        for phase in phases:
-            phase = phase
-            proc_lut = Popen(
-                ['lookuptable', zfile.name, dfile.name, phase, g_model_name],
-                stdout=PIPE, stderr=PIPE)
-
-            out_lut, _ = proc_lut.communicate()
-
-            shutil.rmtree(ttimes_dir)
-
-            head, tail = op.split(args.stem or model_name)
-            head = head or op.curdir
-            stem = op.join(head, tail)
-
-            fn_tbl = '{}.{}.tab'.format(stem, args.phase)
-            util.ensuredirs(fn_tbl)
-            if op.exists(fn_tbl):
-                os.remove(fn_tbl)
-
-            with open(fn_tbl, 'wb') as fid:
-                fid.write(out_lut)
-
-            # Save as NonLinLoc grid file, if requested
-            if args.grid:
-
-                tbl = read_lookup_table(
-                    out_lut.splitlines(), nd=nd, nz=nz, getmeta=False)
-
-                nll_grid = NLLGrid(
-                    basename=stem,
-                    float_type='FLOAT',
-                    grid_type='TIME2D',
-                    wave_type=phase,
-                    station=None,
-                    shape=GridShape(nx=1, ny=nd, nz=nz),
-                    origin=GridOrigin(x=0., y=d_min, z=z_min),
-                    spacing=GridSpacing(dx=0., dy=dd, dz=dz),
-                    data_array=tbl.data_array[np.newaxis, :, :])
-
-                nll_grid.write_hdr()
-                nll_grid.write_buf()
+    tau_runner = TauRunner()
+    tau_runner.run(tau_config)
 
 
 ttt_parser = create_subcmd_parser('ttt', common_opts=True)
@@ -239,7 +133,7 @@ named_args_ttt.add_argument(
 
 # Optional args
 ttt_parser.add_argument(
-    '--model', required=False, default='ak135.tvel',
+    '--model', required=False, default='ak135',
     metavar='NAME or FILENAME',
     help='use built-in model named NAME or user model from file FILENAME.'
          'Run "{} list-models" for a list of built-in models.')
