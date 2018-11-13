@@ -87,13 +87,16 @@ class TauRunner(Object):
         if not op.exists(c.model) and c.model not in util.builtin_models():
             raise PyTTimesError('not such a model: {}'.format(c.model))
 
-        if len(set(np.ediff1d(c.dist_array))) != 1:
-            raise PyTTimesError(
-                'to save as a grid, distance samples must be be evenly spaced')
+        if c.save_grid:
+            if len(set(np.ediff1d(c.dist_array))) != 1:
+                raise PyTTimesError(
+                    'to save as a grid, distance samples must be be '
+                    'evenly spaced')
 
-        if len(set(np.ediff1d(c.depth_array))) != 1:
-            raise PyTTimesError(
-                'to save as a grid, depth samples must be be evenly spaced')
+            if len(set(np.ediff1d(c.depth_array))) != 1:
+                raise PyTTimesError(
+                    'to save as a grid, depth samples must be be '
+                    'evenly spaced')
 
     def run(self, config):
         self.config = c = config
@@ -115,8 +118,11 @@ class TauRunner(Object):
 
         # Dump distance and depth values into ascii files
         dfile, zfile = 'dist.txt', 'depth.txt'
-        np.savetxt(dfile, c.dist_array, fmt='%.2f')
-        np.savetxt(zfile, c.depth_array, fmt='%.2f')
+        np.savetxt(dfile, c.dist_array, fmt='%.6f')
+        np.savetxt(zfile, c.depth_array, fmt='%.6f')
+
+        # Remove redundant old files
+        self.__remodl_cleaner()
 
         # Call binaries
         self.__remodl_runner()
