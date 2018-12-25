@@ -84,18 +84,22 @@ class TauRunner(Object):
             raise PyTTimesError(
                 'number of depth samples cannot be greater than 200')
 
+        if c.dist_array.size > 2000:
+            raise PyTTimesError(
+                'number of distance samples cannot be greater than 2000')
+
         if not op.exists(c.model) and c.model not in util.builtin_models():
             raise PyTTimesError('not such a model: {}'.format(c.model))
 
         if c.save_grid:
             if len(set(np.ediff1d(c.dist_array))) != 1:
                 raise PyTTimesError(
-                    'to save as a grid, distance samples must be be '
+                    'to save as a grid, distance samples must be '
                     'evenly spaced')
 
             if len(set(np.ediff1d(c.depth_array))) != 1:
                 raise PyTTimesError(
-                    'to save as a grid, depth samples must be be '
+                    'to save as a grid, depth samples must be '
                     'evenly spaced')
 
     def run(self, config):
