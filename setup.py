@@ -33,8 +33,7 @@ setup(
                 'lookup-tables and/or NonLinLoc binary grid files '
                 'through 1-D layered velocity models',
     author='Nima Nooshiri',
-    author_email='nima.nooshiri@gfz-potsdam.de; '
-                 'nima.nooshiri@gmail.com',
+    author_email='nima.nooshiri@gmail.com',
     keywords='seismology seismic-travel-times',
     classifiers=[
         'Development Status :: 3 - Alpha',
@@ -42,8 +41,8 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 2.7',
         'Topic :: Scientific/Engineering'],
-    python_requires='>=2.7, <3',
-    install_requires=['numpy>=1.13.1', 'guts>=0.2'],
+    python_requires='>=3.8',
+    install_requires=['numpy>=1.21.2', 'guts>=0.2'],
     packages=[packname],
     package_dir={packname: 'src'},
     scripts=['apps/{}'.format(packname)],
